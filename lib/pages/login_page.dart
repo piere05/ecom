@@ -5,17 +5,82 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/bottom_nav_bar.dart';
 import 'register_page.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class LoginPage extends StatelessWidget {
   final TextEditingController mobileController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   Future<void> _login() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('mobile', mobileController.text);
-    // After login, switch to Home tab
-    final bottomNavController = Get.find<BottomNavController>();
-    bottomNavController.changePage(0);
+    final mobile = mobileController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (mobile.isEmpty || password.isEmpty) {
+      Get.snackbar(
+        "Error",
+        "Please enter mobile and password",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    final response = await http.post(
+      Uri.parse("https://gurunath.piere.in.net/api/login_user.php"),
+      body: {"mobile": mobile, "password": password},
+    );
+
+    print("Response Body: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      if (data["status"] == "success") {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('mobile', mobile);
+
+        // set expiry (7 days)
+        final expiryDate = DateTime.now()
+            .add(const Duration(days: 7))
+            .toIso8601String();
+        await prefs.setString('expiry', expiryDate);
+
+        final bottomNavController = Get.find<BottomNavController>();
+        bottomNavController.changePage(0);
+
+        Get.offAll(
+          () => Scaffold(
+            body: Obx(
+              () => IndexedStack(
+                index: bottomNavController.selectedIndex.value,
+                children: [
+                  BottomNavBarWidget().getPage(0),
+                  BottomNavBarWidget().getPage(1),
+                  BottomNavBarWidget().getPage(2),
+                  BottomNavBarWidget().getPage(3),
+                ],
+              ),
+            ),
+            bottomNavigationBar: BottomNavBarWidget(),
+          ),
+        );
+      } else {
+        Get.snackbar(
+          "Login Failed",
+          "Invalid mobile or password",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } else {
+      Get.snackbar(
+        "Error",
+        "Server error",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 
   @override

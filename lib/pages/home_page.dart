@@ -13,7 +13,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Stream that fetches products every 1 second
   Stream<List<dynamic>> fetchProductsStream() async* {
     while (true) {
       try {
@@ -23,10 +22,12 @@ class _HomePageState extends State<HomePage> {
         if (response.statusCode == 200) {
           yield jsonDecode(response.body);
         } else {
+          // ignore: avoid_print
           print("Failed to fetch products: ${response.statusCode}");
           yield [];
         }
       } catch (e) {
+        // ignore: avoid_print
         print("Error fetching products: $e");
         yield [];
       }
