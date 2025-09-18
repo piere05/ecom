@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'product_detail.dart';
 
+String buildImageUrl(String path) {
+  return Uri.encodeFull("https://gurunath.piere.in.net/adminln/$path");
+}
 
 class ProductCard extends StatelessWidget {
   final String image;
@@ -34,15 +37,23 @@ class ProductCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Product image
-         ClipRRect(
-  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-  child: Image.network(
-    image,
-    height: 200,
-    width: double.infinity,
-    fit: BoxFit.cover,
-  ),
-),
+          ClipRRect(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+            child: Image.network(
+              image,
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 200,
+                  width: double.infinity,
+                  color: Colors.grey.shade300,
+                  child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                );
+              },
+            ),
+          ),
 
           Padding(
             padding: const EdgeInsets.all(8.0),

@@ -4,24 +4,36 @@ import 'package:flutter/material.dart';
 import 'product_card.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 
 class HomePage extends StatefulWidget {
   @override
-  _HomePageState  createState() => _HomePageState();
+  // ignore: library_private_types_in_public_api
+  _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  Future<List<dynamic>> fetchProducts() async {
-    final response = await http.get(
-      Uri.parse("https://gurunath.piere.in.net/api/select_pro.php"),
-    );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception("Failed to load products");
+  // Stream that fetches products every 1 second
+  Stream<List<dynamic>> fetchProductsStream() async* {
+    while (true) {
+      try {
+        final response = await http.get(
+          Uri.parse("https://gurunath.piere.in.net/api/select_pro.php"),
+        );
+        if (response.statusCode == 200) {
+          yield jsonDecode(response.body);
+        } else {
+          print("Failed to fetch products: ${response.statusCode}");
+          yield [];
+        }
+      } catch (e) {
+        print("Error fetching products: $e");
+        yield [];
+      }
+      await Future.delayed(Duration(seconds: 1));
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,47 +89,46 @@ class _HomePageState extends State<HomePage> {
             ),
             SizedBox(height: 30),
             // Product cards (2 per row)
-         FutureBuilder<List<dynamic>>(
-  future: fetchProducts(), // define this function above
-  builder: (context, snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return Center(child: CircularProgressIndicator());
-    } else if (snapshot.hasError) {
-      return Center(child: Text("Error: ${snapshot.error}"));
-    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-      return Center(child: Text("No products found"));
-    }
+            StreamBuilder<List<dynamic>>(
+              stream: fetchProductsStream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text("Error: ${snapshot.error}"));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: Text("No products found"));
+                }
 
-    final products = snapshot.data!;
+                final products = snapshot.data!;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        itemCount: products.length,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.65,
-        ),
-        itemBuilder: (context, index) {
-          final product = products[index];
-          return ProductCard(
-            id: product["id"],
-            image: product["image"],
-            name: product["name"],
-            price: product["price"],
-            originalPrice: product["originalPrice"],
-            brand: product["brand"] ?? "",
-          );
-        },
-      ),
-    );
-  },
-),
-
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: products.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.65,
+                    ),
+                    itemBuilder: (context, index) {
+                      final product = products[index];
+                      return ProductCard(
+                        id: product["id"],
+                        image: product["image"] ?? "",
+                        name: product["name"] ?? "",
+                        price: product["price"] ?? "",
+                        originalPrice: product["originalPrice"] ?? "",
+                        brand: product["brand"] ?? "",
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
             SizedBox(height: 30),
           ],
         ),
