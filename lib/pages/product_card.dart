@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'product_detail.dart';
 
+
 class ProductCard extends StatelessWidget {
   final String image;
   final String name;
@@ -33,15 +34,16 @@ class ProductCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Product image
-          ClipRRect(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-            child: Image.asset(
-              image,
-              height: 200,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
+         ClipRRect(
+  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+  child: Image.network(
+    image,
+    height: 200,
+    width: double.infinity,
+    fit: BoxFit.cover,
+  ),
+),
+
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(

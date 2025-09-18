@@ -2,8 +2,26 @@
 
 import 'package:flutter/material.dart';
 import 'product_card.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState  createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  Future<List<dynamic>> fetchProducts() async {
+    final response = await http.get(
+      Uri.parse("https://gurunath.piere.in.net/api/select_pro.php"),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Failed to load products");
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,34 +77,47 @@ class HomePage extends StatelessWidget {
             ),
             SizedBox(height: 30),
             // Product cards (2 per row)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ProductCard(
-                      id: 1,
-                      image: 'assets/logo.png',
-                      name: 'Formal Shirt',
-                      price: 579,
-                      originalPrice: 1099,
-                      brand: 'Allen Solly',
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: ProductCard(
-                      id: 2,
-                      image: 'assets/logo.png',
-                      name: 'Round Neck T-Shirt',
-                      price: 584,
-                      originalPrice: 1299,
-                      brand: 'Peter England',
-                    ),
-                  ),
-                ],
-              ),
-            ),
+         FutureBuilder<List<dynamic>>(
+  future: fetchProducts(), // define this function above
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return Center(child: CircularProgressIndicator());
+    } else if (snapshot.hasError) {
+      return Center(child: Text("Error: ${snapshot.error}"));
+    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+      return Center(child: Text("No products found"));
+    }
+
+    final products = snapshot.data!;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        itemCount: products.length,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.65,
+        ),
+        itemBuilder: (context, index) {
+          final product = products[index];
+          return ProductCard(
+            id: product["id"],
+            image: product["image"],
+            name: product["name"],
+            price: product["price"],
+            originalPrice: product["originalPrice"],
+            brand: product["brand"] ?? "",
+          );
+        },
+      ),
+    );
+  },
+),
+
             SizedBox(height: 30),
           ],
         ),
