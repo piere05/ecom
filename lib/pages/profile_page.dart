@@ -1,58 +1,59 @@
-// ignore_for_file: use_key_in_widget_constructors
+// ignore_for_file: use_key_in_widget_constructors, sized_box_for_whitespace, prefer_const_constructors_in_immutables
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'edit_profile.dart';
+import 'contact_us_page.dart';
 import 'login_page.dart';
 
 class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text('My Profile'),
-        foregroundColor: Color(0xFFebcd66),
         backgroundColor: Colors.black,
+        elevation: 0,
+        title: Text(
+          'My Profile',
+          style: TextStyle(
+            color: Color(0xFFebcd66),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SingleChildScrollView(
         child: Column(
           children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: AssetImage('assets/logo.png'),
-            ),
-            SizedBox(height: 20),
-            Text(
-              'John Doe',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 5),
-            Text(
-              'johndoe@example.com',
-              style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
-            ),
             SizedBox(height: 30),
-            ListTile(
-              leading: Icon(Icons.edit),
-              title: Text('Edit Profile'),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                // handle edit profile
-              },
+
+            Center(
+              child: Container(
+                height: 120,
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  fit: BoxFit.contain,
+                ),
+              ),
             ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Settings'),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                // handle settings
-              },
+
+            SizedBox(height: 40),
+            // Menu Items
+            ProfileMenuItem(
+              icon: Icons.edit,
+              title: 'Edit Profile',
+              onTap: () => Get.to(() => EditProfilePage()),
             ),
-            ListTile(
-              leading: Icon(Icons.logout),
-              title: Text('Logout'),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
+            ProfileMenuItem(
+              icon: Icons.contact_page,
+              title: 'Contact Us',
+              onTap: () => Get.to(() => ContactUsPage()),
+            ),
+            ProfileMenuItem(
+              icon: Icons.logout,
+              title: 'Logout',
               onTap: () async {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 await prefs.remove('mobile');
@@ -61,6 +62,33 @@ class ProfilePage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class ProfileMenuItem extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  ProfileMenuItem({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.grey[900],
+      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        leading: Icon(icon, color: Color(0xFFebcd66)),
+        title: Text(title, style: TextStyle(color: Colors.white, fontSize: 16)),
+        trailing: Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+        onTap: onTap,
       ),
     );
   }

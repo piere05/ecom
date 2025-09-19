@@ -69,6 +69,61 @@ class _ProductDetailState extends State<ProductDetail> {
     ].where((img) => img.isNotEmpty).toList();
   }
 
+  Future<bool> _checkInCart() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? mobile = prefs.getString('mobile');
+    if (mobile == null || mobile.isEmpty) return false;
+
+    final url = Uri.parse(
+      "https://gurunath.piere.in.net/api/check_cart.php?mobile=$mobile&product_id=${widget.id}",
+    );
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['in_cart'] == true ||
+          data['in_cart'] == 1 ||
+          data['in_cart'] == "1") {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Future<void> _addToCart(String mobile, int productId) async {
+    final url = Uri.parse("https://gurunath.piere.in.net/api/add_to_cart.php");
+    final response = await http.post(
+      url,
+      body: {"mobile": mobile, "product_id": productId.toString()},
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      if (data['success'] == true) {
+        Get.snackbar(
+          "Cart",
+          data['message'] ?? "Updated",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          margin: EdgeInsets.all(10),
+          duration: Duration(seconds: 2),
+        );
+        setState(() {});
+      } else {
+        Get.snackbar(
+          "Error",
+          data['message'] ?? "Something went wrong",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          margin: EdgeInsets.all(10),
+          duration: Duration(seconds: 2),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (productData == null) {
@@ -78,26 +133,76 @@ class _ProductDetailState extends State<ProductDetail> {
     final images = _getImages();
 
     return Scaffold(
-      bottomNavigationBar: Container(
-        color: Colors.black,
-        height: 60,
-        child: TextButton(
-          onPressed: () async {
-            //print("Product ID: $product_id");
-            SharedPreferences prefs = await SharedPreferences.getInstance();
-            String? mobile = prefs.getString('mobile');
-            if (mobile == null || mobile.isEmpty) {
-              Get.to(() => LoginPage());
-            } else {
-              Get.to(() => HomePage());
-            }
-          },
-          child: Text(
-            "Add to Cart",
-            style: TextStyle(color: Colors.white, fontSize: 18),
-          ),
-        ),
+      bottomNavigationBar: FutureBuilder<bool>(
+        future: _checkInCart(),
+        builder: (context, snapshot) {
+          bool inCart = snapshot.data ?? false;
+
+          return Container(
+            height: 60,
+            //color: Colors.black, // optional background for bar
+            padding: EdgeInsets.symmetric(horizontal: 8), // spacing on sides
+            child: Row(
+              children: [
+                // Add to Cart button
+                Expanded(
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.zero,
+                      ),
+                    ),
+                    onPressed: () async {
+                      SharedPreferences prefs =
+                          await SharedPreferences.getInstance();
+                      String? mobile = prefs.getString('mobile');
+                      if (mobile == null || mobile.isEmpty) {
+                        Get.to(() => LoginPage());
+                      } else {
+                        await _addToCart(mobile, widget.id);
+                        setState(() {});
+                      }
+                    },
+                    child: Center(
+                      child: Text(
+                        "Add to Cart",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                    ),
+                  ),
+                ),
+
+                SizedBox(width: 8),
+
+                if (inCart)
+                  Expanded(
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.yellow,
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero,
+                        ),
+                      ),
+                      onPressed: () {
+                        Get.to(() => HomePage());
+                      },
+                      child: Center(
+                        child: Text(
+                          "Go to Cart",
+                          style: TextStyle(color: Colors.black, fontSize: 18),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
       ),
+
       body: Column(
         children: [
           Stack(
@@ -107,7 +212,11 @@ class _ProductDetailState extends State<ProductDetail> {
                 height: 100,
                 color: Colors.black,
                 child: Center(
-                  child: Image.asset('assets/logo.png', height: 80, width: 200),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    height: 80,
+                    width: 200,
+                  ),
                 ),
               ),
               Positioned(
@@ -142,22 +251,7 @@ class _ProductDetailState extends State<ProductDetail> {
                     ),
                   ),
                   SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(images.length, (index) {
-                      return Container(
-                        margin: EdgeInsets.symmetric(horizontal: 3),
-                        width: _currentPage == index ? 12 : 8,
-                        height: _currentPage == index ? 12 : 8,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: _currentPage == index
-                              ? Colors.black
-                              : Colors.grey,
-                        ),
-                      );
-                    }),
-                  ),
+
                   SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),

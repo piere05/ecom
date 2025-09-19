@@ -27,102 +27,125 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-        color: Colors.white,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product image
-          ClipRRect(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-            child: Image.network(
-              image,
-              height: 200,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 200,
-                  width: double.infinity,
-                  color: Colors.grey.shade300,
-                  child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
-                );
-              },
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade300),
+            color: Colors.white,
           ),
-
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 4),
-
-                Text(
-                  'Brand: $brand',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                ),
-                SizedBox(height: 8),
-
-                Row(
-                  children: [
-                    Text(
-                      '₹$price',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    SizedBox(width: 6),
-                    Text(
-                      '₹$originalPrice',
-                      style: TextStyle(
-                        decoration: TextDecoration.lineThrough,
-                        fontSize: 14,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Product image
+              ClipRRect(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                child: Image.network(
+                  image,
+                  height: constraints.maxHeight * 0.4, // dynamic image height
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: constraints.maxHeight * 0.4,
+                      width: double.infinity,
+                      color: Colors.grey.shade300,
+                      child: Icon(
+                        Icons.broken_image,
+                        size: 50,
                         color: Colors.grey,
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-                SizedBox(height: 8),
+              ),
 
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Get.to(() => ProductDetail(id: id));
-                    },
-                    icon: Icon(
-                      Icons.shopping_cart_outlined,
-                      size: 18,
-                      color: Colors.white,
-                    ),
-                    label: Text(
-                      'Buy Now',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+              // Content section
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          name,
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      SizedBox(height: 4),
+                      Text(
+                        'Brand: $brand',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
+                      SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Text(
+                            '₹$price',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              '₹$originalPrice',
+                              style: TextStyle(
+                                decoration: TextDecoration.lineThrough,
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Spacer(),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Get.to(() => ProductDetail(id: id));
+                          },
+                          icon: Icon(
+                            Icons.shopping_cart_outlined,
+                            size: 18,
+                            color: Colors.white,
+                          ),
+                          label: Text(
+                            'Buy Now',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

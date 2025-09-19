@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../widgets/bottom_nav_bar.dart';
 import 'login_page.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class RegisterPage extends StatelessWidget {
   final TextEditingController firstNameController = TextEditingController();
@@ -17,14 +19,87 @@ class RegisterPage extends StatelessWidget {
   final TextEditingController stateController = TextEditingController();
   final TextEditingController pincodeController = TextEditingController();
 
-  Future<void> _register() async {
-    // You can save user data to SharedPreferences or API here
-    final bottomNavController = Get.find<BottomNavController>();
-    bottomNavController.changePage(0); // Switch to Home tab
+  Future<void> _register(BuildContext context) async {
+    final firstName = firstNameController.text.trim();
+    final lastName = lastNameController.text.trim();
+    final mobile = mobileController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+    final landmark = landmarkController.text.trim();
+    final address = addressController.text.trim();
+    final city = cityController.text.trim();
+    final state = stateController.text.trim();
+    final pincode = pincodeController.text.trim();
+
+    if (firstName.isEmpty ||
+        lastName.isEmpty ||
+        mobile.isEmpty ||
+        password.isEmpty) {
+      Get.snackbar(
+        "Error",
+        "Please fill all required fields",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse("https://gurunath.piere.in.net/api/register_user.php"),
+        body: {
+          "firstname": firstName,
+          "lastname": lastName,
+          "mobile": mobile,
+          "email": email,
+          "password": password,
+          "landmark": landmark,
+          "address": address,
+          "city": city,
+          "state": state,
+          "pincode": pincode,
+        },
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (data['status'] == "exists") {
+        Get.snackbar(
+          "Error",
+          "Mobile number already exists",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      } else if (data['status'] == "success") {
+        Get.snackbar(
+          "Success",
+          "Registered successfully",
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        Get.to(() => LoginPage());
+      } else {
+        Get.snackbar(
+          "Error",
+          "Registration failed",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        "Error",
+        "Something went wrong: $e",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final bottomNavController = Get.find<BottomNavController>();
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -53,8 +128,6 @@ class RegisterPage extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 40),
-
-                // First Name
                 Text(
                   "First Name",
                   style: TextStyle(color: Colors.grey.shade400),
@@ -260,12 +333,12 @@ class RegisterPage extends StatelessWidget {
                 ),
                 SizedBox(height: 30),
 
-                // Register Button
+                // Register button
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _register,
+                    onPressed: () => _register(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFFebcd66),
                       foregroundColor: Colors.black,
@@ -284,12 +357,10 @@ class RegisterPage extends StatelessWidget {
                 ),
                 SizedBox(height: 20),
 
-                // Login Button
+                // Go to Login button
                 Center(
                   child: ElevatedButton(
-                    onPressed: () {
-                      Get.to(() => LoginPage());
-                    },
+                    onPressed: () => Get.to(() => LoginPage()),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey.shade800,
                       foregroundColor: Colors.white,
@@ -300,16 +371,13 @@ class RegisterPage extends StatelessWidget {
                     child: Text("Go to Login", style: TextStyle(fontSize: 16)),
                   ),
                 ),
+                SizedBox(height: 10),
 
-                SizedBox(height: 20),
-
-                // Home Button
+                // Go to Home button
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
-                      final bottomNavController =
-                          Get.find<BottomNavController>();
-                      bottomNavController.changePage(0); // switch to Home tab
+                      bottomNavController.changePage(0);
                       Get.offAll(
                         () => Scaffold(
                           body: Obx(

@@ -1,38 +1,30 @@
-// ignore_for_file: use_key_in_widget_constructors
+// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, avoid_print
 
 import 'package:flutter/material.dart';
 import 'product_card.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:async';
 
 class HomePage extends StatefulWidget {
   @override
-  // ignore: library_private_types_in_public_api
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  Stream<List<dynamic>> fetchProductsStream() async* {
-    while (true) {
-      try {
-        final response = await http.get(
-          Uri.parse("https://gurunath.piere.in.net/api/select_pro.php"),
-        );
-        if (response.statusCode == 200) {
-          yield jsonDecode(response.body);
-        } else {
-          // ignore: avoid_print
-          print("Failed to fetch products: ${response.statusCode}");
-          yield [];
-        }
-      } catch (e) {
-        // ignore: avoid_print
-        print("Error fetching products: $e");
-        yield [];
+  Future<List<dynamic>> fetchProducts() async {
+    try {
+      final response = await http.get(
+        Uri.parse("https://gurunath.piere.in.net/api/select_pro.php"),
+      );
+      if (response.statusCode == 200) {
+        return List<dynamic>.from(jsonDecode(response.body));
+      } else {
+        print("Failed to fetch products: ${response.statusCode}");
       }
-      await Future.delayed(Duration(seconds: 1));
+    } catch (e) {
+      print("Error fetching products: $e");
     }
+    return [];
   }
 
   @override
@@ -51,9 +43,12 @@ class _HomePageState extends State<HomePage> {
                   bottom: Radius.circular(30),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [Image.asset('logo.png', width: 320, height: 150)],
+              child: Center(
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: 320,
+                  height: 150,
+                ),
               ),
             ),
             SizedBox(height: 20),
@@ -84,14 +79,17 @@ class _HomePageState extends State<HomePage> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.asset('banner1.webp', fit: BoxFit.cover),
+                  child: Image.asset(
+                    'assets/images/banner1.webp',
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
             ),
             SizedBox(height: 30),
-            // Product cards (2 per row)
-            StreamBuilder<List<dynamic>>(
-              stream: fetchProductsStream(),
+            // Product cards
+            FutureBuilder<List<dynamic>>(
+              future: fetchProducts(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
@@ -102,7 +100,6 @@ class _HomePageState extends State<HomePage> {
                 }
 
                 final products = snapshot.data!;
-
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: GridView.builder(

@@ -1,13 +1,18 @@
-// ignore_for_file: depend_on_referenced_packages, use_key_in_widget_constructors
-
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'widgets/bottom_nav_bar.dart';
 import 'pages/login_page.dart';
 
+/// Conditionally import web URL strategy
+// ignore: uri_does_not_exist
+import 'package:flutter_web_plugins/flutter_web_plugins.dart'
+    if (dart.library.io) 'stub.dart';
+
 void main() {
-  setUrlStrategy(PathUrlStrategy()); // remove # from URL
+  if (kIsWeb) {
+    setUrlStrategy(PathUrlStrategy()); // Web only
+  }
   runApp(MyApp());
 }
 
@@ -33,7 +38,6 @@ class MainScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Obx(() {
-          // Add LoginPage as one of the IndexedStack children
           switch (bottomNavController.selectedIndex.value) {
             case 0:
               return BottomNavBarWidget().getPage(0);
@@ -43,7 +47,7 @@ class MainScreen extends StatelessWidget {
               return BottomNavBarWidget().getPage(2);
             case 3:
               return BottomNavBarWidget().getPage(3);
-            case 4: // LoginPage
+            case 4:
               return LoginPage();
             default:
               return BottomNavBarWidget().getPage(0);
