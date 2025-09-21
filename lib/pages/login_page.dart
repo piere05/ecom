@@ -27,7 +27,7 @@ class LoginPage extends StatelessWidget {
     }
 
     final response = await http.post(
-      Uri.parse("https://gurunath.piere.in.net/api/login_user.php"),
+      Uri.parse("https://mini.piere.in.net/api/login_user.php"),
       body: {"mobile": mobile, "password": password},
     );
 

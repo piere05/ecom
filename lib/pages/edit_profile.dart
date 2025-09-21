@@ -38,7 +38,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     mobile = prefs.getString('mobile');
     if (mobile != null) {
       var response = await http.post(
-        Uri.parse('https://gurunath.piere.in.net/api/fetch_user.php'),
+        Uri.parse('https://mini.piere.in.net/api/fetch_user.php'),
         body: {'mobile': mobile},
       );
       var data = json.decode(response.body);
@@ -66,7 +66,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   void updateUser() async {
     var response = await http.post(
-      Uri.parse('https://gurunath.piere.in.net/api/fetch_user.php'),
+      Uri.parse('https://mini.piere.in.net/api/fetch_user.php'),
       body: {
         'firstname': firstnameController.text,
         'lastname': lastnameController.text,

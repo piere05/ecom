@@ -7,7 +7,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sports_kit/pages/home_page.dart';
 import '../pages/login_page.dart';
-
+import '../widgets/bottom_nav_bar.dart';
 class ProductDetail extends StatefulWidget {
   final int id;
   ProductDetail({required this.id});
@@ -29,7 +29,7 @@ class _ProductDetailState extends State<ProductDetail> {
 
   Future<void> fetchProduct() async {
     final url = Uri.parse(
-      "https://gurunath.piere.in.net/api/select-product-det.php?id=${widget.id}",
+      "https://mini.piere.in.net/api/select-product-det.php?id=${widget.id}",
     );
     final response = await http.get(url);
 
@@ -75,7 +75,7 @@ class _ProductDetailState extends State<ProductDetail> {
     if (mobile == null || mobile.isEmpty) return false;
 
     final url = Uri.parse(
-      "https://gurunath.piere.in.net/api/check_cart.php?mobile=$mobile&product_id=${widget.id}",
+      "https://mini.piere.in.net/api/check_cart.php?mobile=$mobile&product_id=${widget.id}",
     );
     final response = await http.get(url);
     if (response.statusCode == 200) {
@@ -90,7 +90,7 @@ class _ProductDetailState extends State<ProductDetail> {
   }
 
   Future<void> _addToCart(String mobile, int productId) async {
-    final url = Uri.parse("https://gurunath.piere.in.net/api/add_to_cart.php");
+    final url = Uri.parse("https://mini.piere.in.net/api/add_to_cart.php");
     final response = await http.post(
       url,
       body: {"mobile": mobile, "product_id": productId.toString()},
@@ -177,26 +177,42 @@ class _ProductDetailState extends State<ProductDetail> {
                 SizedBox(width: 8),
 
                 if (inCart)
-                  Expanded(
-                    child: TextButton(
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.yellow,
-                        padding: EdgeInsets.zero,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.zero,
-                        ),
-                      ),
-                      onPressed: () {
-                        Get.to(() => HomePage());
-                      },
-                      child: Center(
-                        child: Text(
-                          "Go to Cart",
-                          style: TextStyle(color: Colors.black, fontSize: 18),
-                        ),
-                      ),
-                    ),
-                  ),
+                Expanded(
+  child: TextButton(
+    style: TextButton.styleFrom(
+      backgroundColor: Colors.yellow,
+      padding: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+      ),
+    ),
+    onPressed: () {
+      final BottomNavController bottomNavController = Get.find();
+      bottomNavController.changePage(2); // ✅ Switch to Cart tab
+
+      // ✅ Navigate back to main bottom nav scaffold
+      Get.offAll(() => Scaffold(
+            body: Obx(() => IndexedStack(
+                  index: bottomNavController.selectedIndex.value,
+                  children: [
+                    BottomNavBarWidget().getPage(0),
+                    BottomNavBarWidget().getPage(1),
+                    BottomNavBarWidget().getPage(2), // CartPage
+                    BottomNavBarWidget().getPage(3),
+                  ],
+                )),
+            bottomNavigationBar: BottomNavBarWidget(),
+          ));
+    },
+    child: Center(
+      child: Text(
+        "Go to Cart",
+        style: TextStyle(color: Colors.black, fontSize: 18),
+      ),
+    ),
+  ),
+),
+
               ],
             ),
           );

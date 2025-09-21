@@ -46,7 +46,7 @@ class RegisterPage extends StatelessWidget {
 
     try {
       final response = await http.post(
-        Uri.parse("https://gurunath.piere.in.net/api/register_user.php"),
+        Uri.parse("https://mini.piere.in.net/api/register_user.php"),
         body: {
           "firstname": firstName,
           "lastname": lastName,

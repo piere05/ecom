@@ -1,7 +1,9 @@
 // ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, avoid_print
 
 import 'package:flutter/material.dart';
+import 'SearchResultsPage.dart';
 import 'product_card.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -14,7 +16,7 @@ class _HomePageState extends State<HomePage> {
   Future<List<dynamic>> fetchProducts() async {
     try {
       final response = await http.get(
-        Uri.parse("https://gurunath.piere.in.net/api/select_pro.php"),
+        Uri.parse("https://mini.piere.in.net/api/select_pro.php"),
       );
       if (response.statusCode == 200) {
         return List<dynamic>.from(jsonDecode(response.body));
@@ -56,17 +58,23 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search products...',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey.shade200,
-                ),
-              ),
+  onSubmitted: (value) {
+    if (value.trim().isNotEmpty) {
+      Get.to(() => SearchPage(query: value.trim()));
+    }
+  },
+  decoration: InputDecoration(
+    hintText: 'Search products...',
+    prefixIcon: Icon(Icons.search),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide.none,
+    ),
+    filled: true,
+    fillColor: Colors.grey.shade200,
+  ),
+),
+
             ),
             SizedBox(height: 30),
             // Banner

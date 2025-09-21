@@ -22,7 +22,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
   void submitContact() async {
     if (_formKey.currentState!.validate()) {
       var response = await http.post(
-        Uri.parse('https://gurunath.piere.in.net/api/contact_us.php'),
+        Uri.parse('https://mini.piere.in.net/api/contact_us.php'),
         body: {
           'name': nameController.text,
           'mobile': mobileController.text,
