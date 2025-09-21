@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sports_kit/pages/home_page.dart';
 import '../pages/login_page.dart';
 import '../widgets/bottom_nav_bar.dart';
 class ProductDetail extends StatefulWidget {
