@@ -1,12 +1,12 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, library_private_types_in_public_api, deprecated_member_use
+// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:get/get.dart';
-// import 'orders_page.dart'; 
 import '../widgets/bottom_nav_bar.dart';
+
 class CheckoutPage extends StatefulWidget {
   @override
   _CheckoutPageState createState() => _CheckoutPageState();
@@ -15,7 +15,6 @@ class CheckoutPage extends StatefulWidget {
 class _CheckoutPageState extends State<CheckoutPage> {
   TextEditingController firstNameController = TextEditingController();
   TextEditingController addressController = TextEditingController();
-  String paymentMethod = "COD";
   List<Map<String, dynamic>> cartItems = [];
   double totalAmount = 0;
   double gst = 0;
@@ -63,66 +62,63 @@ class _CheckoutPageState extends State<CheckoutPage> {
     gst = totalAmount * 0.18;
     netTotal = totalAmount + gst;
   }
-Future<void> placeOrder() async {
-  if (mobile == null) return;
-  String cartItemsJson = json.encode(cartItems);
 
-  var response = await http.post(
-    Uri.parse('https://mini.piere.in.net/api/place_order.php'),
-    body: {
-      'paym': paymentMethod,
-      'mobile': mobile,
-      'netot': netTotal.toString(),
-      'name': firstNameController.text,
-      'address': addressController.text,
-      'qty': cartItems
-          .fold<int>(0, (sum, item) => sum + (item['qty'] as int))
-          .toString(),
-      'cart_items': cartItemsJson,
-    },
-  );
+  Future<void> placeOrder() async {
+    if (mobile == null) return;
+    String cartItemsJson = json.encode(cartItems);
 
-  var data = json.decode(response.body);
-  if (data['status'] == 'success') {
-    Get.snackbar(
-      "Success",
-      "Order placed successfully!",
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
+    var response = await http.post(
+      Uri.parse('https://mini.piere.in.net/api/place_order.php'),
+      body: {
+        'paym': "COD",
+        'mobile': mobile,
+        'netot': netTotal.toString(),
+        'name': firstNameController.text,
+        'address': addressController.text,
+        'qty': cartItems
+            .fold<int>(0, (sum, item) => sum + (item['qty'] as int))
+            .toString(),
+        'cart_items': cartItemsJson,
+      },
     );
 
-    setState(() {
-      cartItems.clear();
-    });
+    var data = json.decode(response.body);
+    if (data['status'] == 'success') {
+      Get.snackbar(
+        "Success",
+        "Order placed successfully!",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
 
-    // ✅ Set Orders tab as active
-    final BottomNavController bottomNavController = Get.find();
-    bottomNavController.changePage(1);
+      setState(() {
+        cartItems.clear();
+      });
 
-    // ✅ Close CheckoutPage and go back to main bottom nav container
-    Get.offAll(() => Scaffold(
-          body: Obx(() => IndexedStack(
-                index: bottomNavController.selectedIndex.value,
-                children: [
-                  BottomNavBarWidget().getPage(0),
-                  BottomNavBarWidget().getPage(1), // Orders
-                  BottomNavBarWidget().getPage(2),
-                  BottomNavBarWidget().getPage(3),
-                ],
-              )),
-          bottomNavigationBar: BottomNavBarWidget(),
-        ));
-  } else {
-    Get.snackbar(
-      "Error",
-      "Failed to place order",
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-    );
+      final BottomNavController bottomNavController = Get.find();
+      bottomNavController.changePage(1);
+
+      Get.offAll(() => Scaffold(
+            body: Obx(() => IndexedStack(
+                  index: bottomNavController.selectedIndex.value,
+                  children: [
+                    BottomNavBarWidget().getPage(0),
+                    BottomNavBarWidget().getPage(1),
+                    BottomNavBarWidget().getPage(2),
+                    BottomNavBarWidget().getPage(3),
+                  ],
+                )),
+            bottomNavigationBar: BottomNavBarWidget(),
+          ));
+    } else {
+      Get.snackbar(
+        "Error",
+        "Failed to place order",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
-}
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -138,6 +134,7 @@ Future<void> placeOrder() async {
               padding: EdgeInsets.all(16),
               child: Column(
                 children: [
+                  // Order summary card
                   Card(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
@@ -184,6 +181,8 @@ Future<void> placeOrder() async {
                     ),
                   ),
                   SizedBox(height: 16),
+
+                  // Delivery address
                   Card(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
@@ -215,58 +214,14 @@ Future<void> placeOrder() async {
                       ),
                     ),
                   ),
-                  SizedBox(height: 16),
-                  Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    elevation: 2,
-                    child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Payment Method",
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
-                          ListTile(
-                            title: Text("Cash on Delivery"),
-                            leading: Radio<String>(
-                              value: "COD",
-                              groupValue: paymentMethod,
-                              onChanged: (val) {
-                                setState(() {
-                                  paymentMethod = val!;
-                                });
-                              },
-                            ),
-                          ),
-                          ListTile(
-                            title: Text("Razorpay"),
-                            leading: Radio<String>(
-                              value: "Razorpay",
-                              groupValue: paymentMethod,
-                              onChanged: (val) {
-                                setState(() {
-                                  paymentMethod = val!;
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                   SizedBox(height: 20),
+
+                  // Proceed button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () async {
-                        if (paymentMethod == "COD") {
-                          await placeOrder();
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text("Redirect to Razorpay")));
-                        }
+                        await placeOrder();
                       },
                       style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.yellow,
@@ -274,7 +229,7 @@ Future<void> placeOrder() async {
                           padding: EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10))),
-                      child: Text("Proceed to Pay",
+                      child: Text("Place Order",
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
